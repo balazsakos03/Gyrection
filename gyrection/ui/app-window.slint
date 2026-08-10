@@ -1,0 +1,25 @@
+import { VerticalBox, Button } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    title: "Gyrection";
+    width: 800px;
+    height: 500px;
+
+    VerticalBox {
+        alignment: center;
+
+        Text {
+            text: "Gyrection";
+            font-size: 32px;
+        }
+
+        Text {
+            text: "Phone Controller";
+            font-size: 18px;
+        }
+
+        Button {
+            text: "Connect";
+        }
+    }
+}
