@@ -1,25 +1,316 @@
-import { VerticalBox, Button } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     title: "Gyrection";
-    width: 800px;
-    height: 500px;
+    width: 1000px;
+    height: 650px;
+    background: #111315;
+
+    callback connect-clicked();
 
     VerticalBox {
-        alignment: center;
+        padding: 28px;
+        spacing: 24px;
 
-        Text {
-            text: "Gyrection";
-            font-size: 32px;
+        // Header
+        HorizontalBox {
+            height: 58px;
+
+            VerticalBox {
+                spacing: 2px;
+
+                Text {
+                    text: "Gyrection";
+                    color: #f1f3f5;
+                    font-size: 26px;
+                    font-weight: 700;
+                }
+
+                Text {
+                    text: "Phone motion controller";
+                    color: #858b94;
+                    font-size: 14px;
+                }
+            }
+
+            Text {
+                text: "●  DISCONNECTED";
+                color: #858b94;
+                font-size: 13px;
+                vertical-alignment: center;
+                horizontal-alignment: right;
+            }
         }
 
-        Text {
-            text: "Phone Controller";
-            font-size: 18px;
+        // Connection + controller
+        HorizontalBox {
+            spacing: 18px;
+            height: 235px;
+
+            // Phone connection
+            Rectangle {
+                background: #1b1e22;
+                border-radius: 12px;
+                border-width: 1px;
+                border-color: #2b3037;
+
+                VerticalBox {
+                    padding: 24px;
+                    spacing: 12px;
+
+                    Text {
+                        text: "PHONE CONNECTION";
+                        color: #858b94;
+                        font-size: 12px;
+                        font-weight: 700;
+                    }
+
+                    Text {
+                        text: "No device connected";
+                        color: #f1f3f5;
+                        font-size: 21px;
+                        font-weight: 600;
+                    }
+
+                    Text {
+                        text: "Connect your Android phone via USB.";
+                        color: #858b94;
+                        font-size: 14px;
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: #2b3037;
+                    }
+
+                    Button {
+                        text: "Connect device";
+                        primary: true;
+
+                        clicked => {
+                            connect-clicked();
+                        }
+                    }
+                }
+            }
+
+            // Virtual controller
+            Rectangle {
+                background: #1b1e22;
+                border-radius: 12px;
+                border-width: 1px;
+                border-color: #2b3037;
+
+                VerticalBox {
+                    padding: 24px;
+                    spacing: 12px;
+
+                    Text {
+                        text: "VIRTUAL CONTROLLER";
+                        color: #858b94;
+                        font-size: 12px;
+                        font-weight: 700;
+                    }
+
+                    Text {
+                        text: "Inactive";
+                        color: #f1f3f5;
+                        font-size: 21px;
+                        font-weight: 600;
+                    }
+
+                    Text {
+                        text: "A virtual gamepad will appear here.";
+                        color: #858b94;
+                        font-size: 14px;
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: #2b3037;
+                    }
+
+                    Text {
+                        text: "Waiting for phone connection...";
+                        color: #626872;
+                        font-size: 13px;
+                    }
+                }
+            }
         }
 
-        Button {
-            text: "Connect";
+        // Live data
+        Rectangle {
+            background: #1b1e22;
+            border-radius: 12px;
+            border-width: 1px;
+            border-color: #2b3037;
+
+            VerticalBox {
+                padding: 22px;
+                spacing: 16px;
+
+                Text {
+                    text: "LIVE SENSOR DATA";
+                    color: #858b94;
+                    font-size: 12px;
+                    font-weight: 700;
+                }
+
+                HorizontalBox {
+                    spacing: 16px;
+
+                    // Quaternion
+                    Rectangle {
+                        background: #15181b;
+                        border-radius: 8px;
+
+                        VerticalBox {
+                            padding: 16px;
+                            spacing: 8px;
+
+                            Text {
+                                text: "QUATERNION";
+                                color: #aeb4bd;
+                                font-size: 13px;
+                                font-weight: 600;
+                            }
+
+                            Text {
+                                text: "W     0.000";
+                                color: #e8eaed;
+                                font-size: 14px;
+                            }
+
+                            Text {
+                                text: "X     0.000";
+                                color: #e8eaed;
+                                font-size: 14px;
+                            }
+
+                            Text {
+                                text: "Y     0.000";
+                                color: #e8eaed;
+                                font-size: 14px;
+                            }
+
+                            Text {
+                                text: "Z     1.000";
+                                color: #e8eaed;
+                                font-size: 14px;
+                            }
+                        }
+                    }
+
+                    // Orientation
+                    Rectangle {
+                        background: #15181b;
+                        border-radius: 8px;
+
+                        VerticalBox {
+                            padding: 16px;
+                            spacing: 8px;
+
+                            Text {
+                                text: "ORIENTATION";
+                                color: #aeb4bd;
+                                font-size: 13px;
+                                font-weight: 600;
+                            }
+
+                            Text {
+                                text: "Pitch";
+                                color: #626872;
+                                font-size: 13px;
+                            }
+
+                            Text {
+                                text: "0.00°";
+                                color: #e8eaed;
+                                font-size: 20px;
+                                font-weight: 600;
+                            }
+
+                            Text {
+                                text: "Yaw";
+                                color: #626872;
+                                font-size: 13px;
+                            }
+
+                            Text {
+                                text: "0.00°";
+                                color: #e8eaed;
+                                font-size: 20px;
+                                font-weight: 600;
+                            }
+                        }
+                    }
+
+                    // Controller values
+                    Rectangle {
+                        background: #15181b;
+                        border-radius: 8px;
+
+                        VerticalBox {
+                            padding: 16px;
+                            spacing: 8px;
+
+                            Text {
+                                text: "CONTROLLER";
+                                color: #aeb4bd;
+                                font-size: 13px;
+                                font-weight: 600;
+                            }
+
+                            Text {
+                                text: "Steering";
+                                color: #626872;
+                                font-size: 13px;
+                            }
+
+                            Text {
+                                text: "0%";
+                                color: #e8eaed;
+                                font-size: 20px;
+                                font-weight: 600;
+                            }
+
+                            Text {
+                                text: "Throttle";
+                                color: #626872;
+                                font-size: 13px;
+                            }
+
+                            Text {
+                                text: "0%";
+                                color: #e8eaed;
+                                font-size: 20px;
+                                font-weight: 600;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Footer
+        HorizontalBox {
+            height: 36px;
+
+            Text {
+                text: "USB connection";
+                color: #626872;
+                font-size: 12px;
+                vertical-alignment: center;
+            }
+
+            Text {
+                text: "Gyrection v0.1.0";
+                color: #626872;
+                font-size: 12px;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+            }
         }
     }
 }
