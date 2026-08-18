@@ -29,7 +29,7 @@ fun HandbrakeButton(
 ) {
     var isPressed by remember { mutableStateOf(false) }
 
-    // Animáljuk a gomb színét nyomás hatására (Sötétszürke -> Világító Piros)
+    // Animate the button color while pressed (Dark gray -> Glowing red)
     val backgroundColor by animateColorAsState(
         targetValue = if (isPressed) Color(0xFFF44336) else MaterialTheme.colorScheme.surface,
         label = "HandbrakeColor"
@@ -62,7 +62,7 @@ fun HandbrakeButton(
             }
     ) {
         Text(
-            text = "KÉZIFÉK",
+            text = "HANDBRAKE",
             color = textColor,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Black

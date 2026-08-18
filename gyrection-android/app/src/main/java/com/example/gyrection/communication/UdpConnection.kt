@@ -6,12 +6,12 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 
 /**
- * UDP-alapú kapcsolat (Wi-Fi, low-latency szenzorstream).
+ * UDP-based connection (Wi-Fi, low-latency sensor streaming).
  *
- * A `connect(host, port)` létrehozza a küldő socketet és beállítja a
- * célt (a PC IP-címét). Előtte a `discover()` képes automatikusan
- * megtalálni a PC-t a helyi hálózaton egy broadcast üzenettel — így a
- * felhasználónak nem kell kézzel beírnia az IP-címet.
+ * `connect(host, port)` creates the sending socket and sets the target
+ * (the PC's IP address). Before that, `discover()` can automatically find
+ * the PC on the local network using a broadcast message — so the user
+ * never has to type an IP address.
  */
 class UdpConnection : Connection {
 
@@ -20,10 +20,10 @@ class UdpConnection : Connection {
     private var port: Int = 0
 
     /**
-     * Felfedezi a PC-t a hálózaton: broadcast "GYRECTION_DISCOVERY" üzenetet
-     * küld, és vár a válaszra, amiben a PC elküldi az IP-címét.
+     * Finds the PC on the network: sends a broadcast "GYRECTION_DISCOVERY"
+     * message and waits for the reply, in which the PC sends its IP address.
      *
-     * @return a megtalált PC IP-címe, vagy null, ha nem volt válasz a megadott időn belül
+     * @return the found PC IP address, or null if there was no reply within the timeout
      */
     fun discover(port: Int, timeoutMs: Int = 2000): String? {
         val s = DatagramSocket()
@@ -63,7 +63,7 @@ class UdpConnection : Connection {
         socket = DatagramSocket()
         true
     } catch (e: Exception) {
-        // Rossz IP, nincs hálózat stb.
+        // Wrong IP, no network, etc.
         socket = null
         address = null
         false

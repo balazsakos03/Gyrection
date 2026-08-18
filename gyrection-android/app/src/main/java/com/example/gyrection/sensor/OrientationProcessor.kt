@@ -30,7 +30,7 @@ class OrientationProcessor {
         val reference = calibrationQuaternion ?: return Orientation()
         val current = quaternion.normalized()
 
-        // Relatív forgás a kalibrált nullaponthoz képest
+        // Relative rotation compared to the calibrated reference point
         val relative = reference.inverse() * current
 
         return quaternionToOrientation(relative)
@@ -44,12 +44,12 @@ class OrientationProcessor {
     }
 
     private fun quaternionToOrientation(q: Quaternion): Orientation {
-        // X-tengely körüli forgás
+        // Rotation around the X axis (roll)
         val sinr_cosp = 2f * (q.w * q.x + q.y * q.z)
         val cosr_cosp = 1f - 2f * (q.x * q.x + q.y * q.y)
         val rotX = atan2(sinr_cosp, cosr_cosp)
 
-        // Y-tengely körüli forgás (Gáz és fék a te esetedben)
+        // Rotation around the Y axis (pitch -> throttle/brake)
         val sinp = 2f * (q.w * q.y - q.z * q.x)
         val rotY = if (abs(sinp) >= 1f) {
             Math.copySign(Math.PI.toFloat() / 2f, sinp)
@@ -57,7 +57,7 @@ class OrientationProcessor {
             asin(sinp)
         }
 
-        // Z-tengely körüli forgás (Kormányzás a te esetedben)
+        // Rotation around the Z axis (yaw -> steering)
         val siny_cosp = 2f * (q.w * q.z + q.x * q.y)
         val cosy_cosp = 1f - 2f * (q.y * q.y + q.z * q.z)
         val rotZ = atan2(siny_cosp, cosy_cosp)

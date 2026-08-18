@@ -37,18 +37,18 @@ class MainActivity : ComponentActivity() {
     private var isHandbrakeActive by mutableStateOf(false)
     private var isConnected by mutableStateOf(false)
 
-    // Folyamatban van-e már a PC felfedezése (elkerüljük az átfedő kéréseket)
+    // A discovery request is already in progress; avoid overlapping calls
     private var discoverInProgress = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Kényszerített Landscape mód, hogy a telefon mindig kormany-szeruen alljon
+        // Forced landscape orientation so the phone always sits like a steering wheel
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
 
         orientationProcessor = OrientationProcessor()
         controllerMapper = ControllerMapper()
-        connection = UdpConnection() // Wi-Fi, UDP datagramok a PC-re
+        connection = UdpConnection() // Wi-Fi, sends UDP datagrams to the PC
 
         sensorManager = SensorManager(this) { newQuaternion ->
             quaternion = newQuaternion
@@ -83,8 +83,8 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Automatikus csatlakozás: broadcast-kal megkeresi a PC-t a hálózaton
-     * (a felhasználónak nem kell IP-címet beírnia), majd csatlakozik hozzá.
+     * Auto-connect: finds the PC on the network via broadcast
+     * (the user does not need to type an IP address), then connects.
      */
     private fun autoConnect() {
         if (isConnected || discoverInProgress) return
@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         sensorManager.start()
-        // Háttérben automatikusan megkeresi a PC-t a hálózaton
+        // Automatically finds the PC on the network in the background
         autoConnect()
     }
 

@@ -2,33 +2,39 @@ import { VerticalBox, HorizontalBox, Button } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     title: "Gyrection";
-    width: 1000px;
-    height: 650px;
+    preferred-width: 1000px;
+    preferred-height: 650px;
+    min-width: 860px;
+    min-height: 560px;
     background: #111315;
 
-    // --- ÚJ PROPERTIEK (Ezeket állítja a Rust kód) ---
+    // --- State properties (set from Rust) ---
     in property <bool> is-connected: false;
     in property <string> connection-status-text: "No device connected";
     in property <string> steering-val: "0%";
     in property <string> throttle-val: "0%";
+    in property <string> brake-val: "0%";
+    in property <bool> handbrake-active: false;
     in property <string> pitch-val: "0.00°";
     in property <string> yaw-val: "0.00°";
-    in property <string> qw-val: "0.000";
-    in property <string> qx-val: "0.000";
-    in property <string> qy-val: "0.000";
-    in property <string> qz-val: "1.000";
+    // Quaternion values are parsed on the Rust side and kept there for debugging.
+    // If needed later, re-enable these properties and the related UI section below.
+    // in property <string> qw-val: "0.000";
+    // in property <string> qx-val: "0.000";
+    // in property <string> qy-val: "0.000";
+    // in property <string> qz-val: "1.000";
     in property <string> server-status-text: "WiFi UDP";
     // ------------------------------------------------
 
     callback connect-clicked();
 
     VerticalBox {
-        padding: 28px;
-        spacing: 24px;
+        padding: 22px;
+        spacing: 14px;
 
         // Header
         HorizontalBox {
-            height: 58px;
+            height: 54px;
 
             VerticalBox {
                 spacing: 2px;
@@ -36,19 +42,18 @@ export component AppWindow inherits Window {
                 Text {
                     text: "Gyrection";
                     color: #f1f3f5;
-                    font-size: 26px;
+                    font-size: 24px;
                     font-weight: 700;
                 }
 
                 Text {
                     text: "Phone motion controller";
                     color: #858b94;
-                    font-size: 14px;
+                    font-size: 13px;
                 }
             }
 
             Text {
-                // Dinamikus státusz a jobb felső sarokban
                 text: root.is-connected ? "●  CONNECTED" : "●  DISCONNECTED";
                 color: root.is-connected ? #4CAF50 : #858b94;
                 font-size: 13px;
@@ -57,10 +62,9 @@ export component AppWindow inherits Window {
             }
         }
 
-        // Connection + controller
+        // Connection + virtual controller (compact row, height follows content)
         HorizontalBox {
-            spacing: 18px;
-            height: 235px;
+            spacing: 14px;
 
             // Phone connection
             Rectangle {
@@ -70,32 +74,27 @@ export component AppWindow inherits Window {
                 border-color: #2b3037;
 
                 VerticalBox {
-                    padding: 24px;
-                    spacing: 12px;
+                    padding: 16px;
+                    spacing: 8px;
 
                     Text {
                         text: "PHONE CONNECTION";
                         color: #858b94;
-                        font-size: 12px;
+                        font-size: 11px;
                         font-weight: 700;
                     }
 
                     Text {
                         text: root.connection-status-text;
                         color: #f1f3f5;
-                        font-size: 21px;
+                        font-size: 18px;
                         font-weight: 600;
                     }
 
                     Text {
-                        text: root.is-connected ? "Receiving sensor data..." : "Connect your Android phone via USB.";
+                        text: root.is-connected ? "Receiving sensor data..." : "Phone auto-connects over WiFi.";
                         color: #858b94;
-                        font-size: 14px;
-                    }
-
-                    Rectangle {
-                        height: 1px;
-                        background: #2b3037;
+                        font-size: 13px;
                     }
 
                     Button {
@@ -118,44 +117,33 @@ export component AppWindow inherits Window {
                 border-color: #2b3037;
 
                 VerticalBox {
-                    padding: 24px;
-                    spacing: 12px;
+                    padding: 16px;
+                    spacing: 8px;
 
                     Text {
                         text: "VIRTUAL CONTROLLER";
                         color: #858b94;
-                        font-size: 12px;
+                        font-size: 11px;
                         font-weight: 700;
                     }
 
                     Text {
                         text: root.is-connected ? "Active" : "Inactive";
                         color: root.is-connected ? #4CAF50 : #f1f3f5;
-                        font-size: 21px;
+                        font-size: 18px;
                         font-weight: 600;
                     }
 
                     Text {
                         text: root.is-connected ? "Mapping motion to virtual gamepad." : "A virtual gamepad will appear here.";
                         color: #858b94;
-                        font-size: 14px;
-                    }
-
-                    Rectangle {
-                        height: 1px;
-                        background: #2b3037;
-                    }
-
-                    Text {
-                        text: root.is-connected ? "Controller running smoothly." : "Waiting for phone connection...";
-                        color: #626872;
                         font-size: 13px;
                     }
                 }
             }
         }
 
-        // Live data
+        // Live data (this section stretches with the window size)
         Rectangle {
             background: #1b1e22;
             border-radius: 12px;
@@ -163,8 +151,8 @@ export component AppWindow inherits Window {
             border-color: #2b3037;
 
             VerticalBox {
-                padding: 22px;
-                spacing: 16px;
+                padding: 18px;
+                spacing: 14px;
 
                 Text {
                     text: "LIVE SENSOR DATA";
@@ -174,51 +162,9 @@ export component AppWindow inherits Window {
                 }
 
                 HorizontalBox {
-                    spacing: 16px;
+                    spacing: 14px;
 
-                    // Quaternion
-                    Rectangle {
-                        background: #15181b;
-                        border-radius: 8px;
-
-                        VerticalBox {
-                            padding: 16px;
-                            spacing: 8px;
-
-                            Text {
-                                text: "QUATERNION";
-                                color: #aeb4bd;
-                                font-size: 13px;
-                                font-weight: 600;
-                            }
-
-                            Text {
-                                text: "W     " + root.qw-val;
-                                color: #e8eaed;
-                                font-size: 14px;
-                            }
-
-                            Text {
-                                text: "X     " + root.qx-val;
-                                color: #e8eaed;
-                                font-size: 14px;
-                            }
-
-                            Text {
-                                text: "Y     " + root.qy-val;
-                                color: #e8eaed;
-                                font-size: 14px;
-                            }
-
-                            Text {
-                                text: "Z     " + root.qz-val;
-                                color: #e8eaed;
-                                font-size: 14px;
-                            }
-                        }
-                    }
-
-                    // Orientation
+                    // Orientation (pitch / yaw)
                     Rectangle {
                         background: #15181b;
                         border-radius: 8px;
@@ -243,7 +189,7 @@ export component AppWindow inherits Window {
                             Text {
                                 text: root.pitch-val;
                                 color: #e8eaed;
-                                font-size: 20px;
+                                font-size: 18px;
                                 font-weight: 600;
                             }
 
@@ -256,13 +202,13 @@ export component AppWindow inherits Window {
                             Text {
                                 text: root.yaw-val;
                                 color: #e8eaed;
-                                font-size: 20px;
+                                font-size: 18px;
                                 font-weight: 600;
                             }
                         }
                     }
 
-                    // Controller values
+                    // Controller output (steering / throttle / brake / handbrake)
                     Rectangle {
                         background: #15181b;
                         border-radius: 8px;
@@ -278,40 +224,109 @@ export component AppWindow inherits Window {
                                 font-weight: 600;
                             }
 
+                            HorizontalBox {
+                                Text {
+                                    text: "Steering";
+                                    color: #626872;
+                                    font-size: 13px;
+                                    width: 120px;
+                                    vertical-alignment: center;
+                                }
+
+                                Text {
+                                    text: root.steering-val;
+                                    color: #e8eaed;
+                                    font-size: 18px;
+                                    font-weight: 600;
+                                    horizontal-alignment: right;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            HorizontalBox {
+                                Text {
+                                    text: "Throttle";
+                                    color: #626872;
+                                    font-size: 13px;
+                                    width: 120px;
+                                    vertical-alignment: center;
+                                }
+
+                                Text {
+                                    text: root.throttle-val;
+                                    color: #e8eaed;
+                                    font-size: 18px;
+                                    font-weight: 600;
+                                    horizontal-alignment: right;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            HorizontalBox {
+                                Text {
+                                    text: "Brake";
+                                    color: #626872;
+                                    font-size: 13px;
+                                    width: 120px;
+                                    vertical-alignment: center;
+                                }
+
+                                Text {
+                                    text: root.brake-val;
+                                    color: #e8eaed;
+                                    font-size: 18px;
+                                    font-weight: 600;
+                                    horizontal-alignment: right;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            // Handbrake feedback on the PC
+                            Rectangle {
+                                height: 8px;
+                                border-radius: 4px;
+                                background: root.handbrake-active ? #F44336 : #2b3037;
+                            }
+
                             Text {
-                                text: "Steering";
-                                color: #626872;
+                                text: root.handbrake-active ? "HANDBRAKE ACTIVE" : "HANDBRAKE";
+                                color: root.handbrake-active ? #F44336 : #626872;
                                 font-size: 13px;
-                            }
-
-                            Text {
-                                text: root.steering-val;
-                                color: #e8eaed;
-                                font-size: 20px;
-                                font-weight: 600;
-                            }
-
-                            Text {
-                                text: "Throttle";
-                                color: #626872;
-                                font-size: 13px;
-                            }
-
-                            Text {
-                                text: root.throttle-val;
-                                color: #e8eaed;
-                                font-size: 20px;
-                                font-weight: 600;
+                                font-weight: 700;
                             }
                         }
                     }
+
+                    // --- Quaternion debug section (disabled) ---
+                    // Rectangle {
+                    //     background: #15181b;
+                    //     border-radius: 8px;
+                    //
+                    //     VerticalBox {
+                    //         padding: 16px;
+                    //         spacing: 8px;
+                    //
+                    //         Text {
+                    //             text: "QUATERNION";
+                    //             color: #aeb4bd;
+                    //             font-size: 13px;
+                    //             font-weight: 600;
+                    //         }
+                    //
+                    //         Text { text: "W     " + root.qw-val; color: #e8eaed; font-size: 14px; }
+                    //         Text { text: "X     " + root.qx-val; color: #e8eaed; font-size: 14px; }
+                    //         Text { text: "Y     " + root.qy-val; color: #e8eaed; font-size: 14px; }
+                    //         Text { text: "Z     " + root.qz-val; color: #e8eaed; font-size: 14px; }
+                    //     }
+                    // }
+                    // -------------------------------------------------
                 }
             }
         }
 
         // Footer
         HorizontalBox {
-            height: 36px;
+            height: 30px;
 
             Text {
                 text: root.server-status-text;
@@ -330,3 +345,4 @@ export component AppWindow inherits Window {
         }
     }
 }
+

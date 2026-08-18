@@ -34,12 +34,12 @@ fun ConnectionCard(
             ) {
                 Column {
                     Text(
-                        text = "PC Kapcsolat",
+                        text = "PC Connection",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.Gray
                     )
                     Text(
-                        text = if (isConnected) "Csatlakozva" else "Nincs kapcsolat",
+                        text = if (isConnected) "Connected" else "Not connected",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = if (isConnected) Color(0xFF4CAF50) else Color(0xFFF44336)
@@ -48,21 +48,21 @@ fun ConnectionCard(
 
                 Button(
                     onClick = {
-                        android.util.Log.d("GyrectionDebug", "Csatlakozás kattintva")
+                        android.util.Log.d("GyrectionDebug", "Connect clicked")
                         onConnectClick()
                     },
                     enabled = !isConnected,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text(if (isConnected) "Aktív" else "Csatlakozás")
+                    Text(if (isConnected) "Active" else "Connect")
                 }
             }
 
             Text(
                 text = if (isConnected)
-                    "Szenzor adatok küldése a PC-re..."
+                    "Streaming sensor data to PC..."
                 else
-                    "A gomb automatikusan megkeresi a PC-t a hálózaton.",
+                    "The button automatically finds your PC on the network.",
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodySmall
             )

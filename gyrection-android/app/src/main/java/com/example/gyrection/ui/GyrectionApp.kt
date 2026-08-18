@@ -45,7 +45,7 @@ fun GyrectionApp(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            // Landscape layout: Két oszlopra osztjuk a képernyőt (Bal: Info/Gombok, Jobb: Kézifék)
+            // Landscape layout: split the screen into two columns (Left: info/buttons, Right: handbrake)
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -53,7 +53,7 @@ fun GyrectionApp(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Bal oldali oszlop (Súly: 1f, hogy kitöltse a maradék helyet)
+                // Left column (weight 1f fills the remaining space)
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -73,12 +73,12 @@ fun GyrectionApp(
                     )
                 }
 
-                // Jobb oldali oszlop (Fix arány: egy hatalmas kézifék gomb)
+                // Right column (fixed ratio: one huge handbrake button)
                 HandbrakeButton(
                     onPressChange = onHandbrakeChange,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(0.35f) // A képernyő szélességének 35%-a
+                        .fillMaxWidth(0.35f) // 35% of the screen width
                 )
             }
         }

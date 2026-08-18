@@ -4,8 +4,8 @@ import com.example.gyrection.protocol.GyrectionPacket
 
 interface Connection {
     /**
-     * Felépíti a kapcsolatot a megadott célra (host:port).
-     * UDP esetén ez a küldő socket inicializálását jelenti.
+     * Builds the connection to the given target (host:port).
+     * For UDP, this initializes the sending socket.
      */
     fun connect(host: String, port: Int): Boolean
     fun disconnect()

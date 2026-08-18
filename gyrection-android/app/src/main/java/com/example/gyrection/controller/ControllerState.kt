@@ -22,22 +22,22 @@ class ControllerMapper(
         val throttle: Float
         val brake: Float
 
-        // GÁZ / FÉK Logika (Invertálva)
-        // Előre döntés (pozitív tiltAngle) -> Gáz
-        // Hátra döntés (negatív tiltAngle) -> Fék
+        // THROTTLE / BRAKE logic (inverted):
+        // Tilting forward (positive tiltAngle) -> throttle
+        // Tilting backward (negative tiltAngle) -> brake
         if(abs(tiltAngle) < tiltDeadZone){
             throttle = 0f
             brake = 0f
         } else if(tiltAngle > 0){
-            throttle = (tiltAngle / maxPhoneTilt).coerceIn(0f, 1f) // Itt most már a gázt növeljük
+            throttle = (tiltAngle / maxPhoneTilt).coerceIn(0f, 1f) // throttle increases
             brake = 0f
         } else {
-            brake = (-tiltAngle / maxPhoneTilt).coerceIn(0f, 1f) // Itt pedig a féket
+            brake = (-tiltAngle / maxPhoneTilt).coerceIn(0f, 1f) // brake increases
             throttle = 0f
         }
 
-        // KORMÁNYZÁS Logika (Invertálva)
-        // A -steeringAngle biztosítja, hogy balra negatív, jobbra pozitív legyen az eredmény
+        // STEERING logic (inverted):
+        // -steeringAngle makes the result negative to the left, positive to the right
         val steering = if (abs(steeringAngle) > steeringDeadZone){
             (-steeringAngle / maxPhoneTilt).coerceIn(-1f, 1f)
         } else {

@@ -33,20 +33,22 @@ fun OrientationCard(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Nyers szenzor adatok
+                // Raw sensor values
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Szenzor adatok", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                    Text("Sensor data", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Kormány (Z): %.1f°".format(orientation.rotZ), fontWeight = FontWeight.Medium)
-                    Text("Gáz/Fék (Y): %.1f°".format(orientation.rotY), fontWeight = FontWeight.Medium)
+                    Text("Steering (Z): %.1f°".format(orientation.rotZ), fontWeight = FontWeight.Medium)
+                    Text("Throttle/Brake (Y): %.1f°".format(orientation.rotY), fontWeight = FontWeight.Medium)
                 }
 
-                // Kimeneti kontroller adatok progress barokkal
+                // Output controller values with progress bars
                 Column(modifier = Modifier.weight(1.5f)) {
-                    Text("Játékvezérlő kimenet", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                    Text("Gamepad output", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     TelemetryBar(label = "Steering", value = controllerState.steering, isBiDirectional = true)
@@ -55,13 +57,13 @@ fun OrientationCard(
                 }
             }
 
-            // Kalibrációs gomb a bal alsó sarokban (bal hüvelykujjal elérhető)
+            // Calibration button in the bottom-left corner (reachable with the left thumb)
             Button(
                 onClick = onCalibrateClick,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {
-                Text("Középállás Kalibrálása", fontWeight = FontWeight.Bold)
+                Text("Calibrate Center", fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -87,7 +89,7 @@ fun TelemetryBar(
                 .background(Color.DarkGray)
         ) {
             if (isBiDirectional) {
-                // Biztosítjuk, hogy a súly sosem lesz pontosan 0 vagy 1
+                // Make sure the weight is never exactly 0 or 1
                 val safeWidth = Math.abs(value).coerceIn(0.001f, 0.999f)
                 val remainder = (1f - safeWidth).coerceAtLeast(0.001f)
 
@@ -111,7 +113,7 @@ fun TelemetryBar(
             } else {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(value.coerceAtLeast(0f)) // fillMaxWidth bírja a nullát
+                        .fillMaxWidth(value.coerceAtLeast(0f)) // fillMaxWidth handles zero
                         .fillMaxHeight()
                         .background(color)
                 )

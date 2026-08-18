@@ -5,21 +5,21 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * A telefon → PC irányú UDP csomag (little-endian).
+ * Phone → PC UDP packet (little-endian).
  *
- * Bájttérkép (41 bájt):
+ * Byte layout (41 bytes):
  * ```
  * [0]     magic                 0x01
  * [1..4]  steering              f32  (-1..1)
  * [5..8]  throttle              f32  (0..1)
  * [9..12] brake                 f32  (0..1)
- * [13..16] handbrake            f32  (0.0 vagy 1.0)
- * [17..20] qw (kvaternió W)
- * [21..24] qx (kvaternió X)
- * [25..28] qy (kvaternió Y)
- * [29..32] qz (kvaternió Z)
- * [33..36] pitch (rotY, gáz/fék tengely)
- * [37..40] yaw   (rotZ, kormányzás tengely)
+ * [13..16] handbrake            f32  (0.0 or 1.0)
+ * [17..20] qw (quaternion W)
+ * [21..24] qx (quaternion X)
+ * [25..28] qy (quaternion Y)
+ * [29..32] qz (quaternion Z)
+ * [33..36] pitch (rotY, throttle/brake axis)
+ * [37..40] yaw   (rotZ, steering axis)
  * ```
  */
 data class GyrectionPacket(

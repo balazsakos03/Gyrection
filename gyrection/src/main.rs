@@ -8,13 +8,13 @@ const UDP_PORT: u16 = 9999;
 const PACKET_LEN: usize = 41;
 const DISCONNECT_TIMEOUT: Duration = Duration::from_millis(1500);
 
-/// A telefon által küldött felfedező üzenet (broadcast). Ha ezt látjuk,
-/// tudja a telefon, hogy itt a PC szerver, és visszaküldjük az IP-címünket.
+/// The discovery message sent by the phone (broadcast). When we see it,
+/// the phone knows the PC server is here, so we reply with our IP address.
 const DISCOVERY_MSG: &[u8] = b"GYRECTION_DISCOVERY";
 const DISCOVERY_RESPONSE_PREFIX: &str = "GYRECTION_IP ";
 
-/// Megkeresi a gép helyi (LAN) IP-címét egy küldés nélküli UDP "probe"-bal,
-/// hogy a felület alján megmutathassuk, hova kell a telefonban küldeni.
+/// Finds the machine's local (LAN) IP address using a non-sending UDP "probe",
+/// so the UI can show where the phone should send data.
 fn local_ipv4() -> IpAddr {
     if let Ok(probe) = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)) {
         if probe.connect((Ipv4Addr::new(8, 8, 8, 8), 80)).is_ok() {
@@ -30,21 +30,21 @@ fn main() -> Result<(), slint::PlatformError> {
     let app = AppWindow::new()?;
     let app_weak = app.as_weak();
 
-    // A PC helyi címe, amelyet a telefonban meg kell adni
+    // The PC's local address the phone should send to
     let ip = local_ipv4();
     let ip_string = ip.to_string();
-    let server_info = format!("WiFi UDP | telefon erre küldjön: {ip}:{UDP_PORT}");
+    let server_info = format!("WiFi UDP | phone sends to {ip}:{UDP_PORT}");
     app.set_server_status_text(server_info.clone().into());
     println!("{server_info}");
 
-    // UDP szerver szál: folyamatosan fogadja a telefon datagramjait
+    // UDP server thread: continuously receives the phone's datagrams
     thread::spawn(move || {
         let socket = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, UDP_PORT))
-            .unwrap_or_else(|e| panic!("Nem sikerült UDP szervert indítani a {UDP_PORT}. porton: {e}"));
+            .unwrap_or_else(|e| panic!("Failed to start the UDP server on port {UDP_PORT}: {e}"));
         socket
             .set_read_timeout(Some(Duration::from_millis(200)))
-            .expect("Nem sikerült beállítani a read timeoutot.");
-        println!("UDP szerver figyel a 0.0.0.0:{UDP_PORT} porton (WiFi).");
+            .expect("Failed to set the read timeout.");
+        println!("UDP server listening on 0.0.0.0:{UDP_PORT} (WiFi).");
 
         let mut last_packet = Instant::now();
         let mut is_live = false;
@@ -53,17 +53,17 @@ fn main() -> Result<(), slint::PlatformError> {
         loop {
             match socket.recv_from(&mut buf) {
                 Ok((size, src)) => {
-                    // Broadcast-felfedezés: a telefon keresi a PC-t → küldjük az IP-címünket
+                    // Broadcast discovery: the phone is looking for the PC -> send our IP
                     if size >= DISCOVERY_MSG.len() && &buf[..DISCOVERY_MSG.len()] == DISCOVERY_MSG {
                         let response = format!("{DISCOVERY_RESPONSE_PREFIX}{ip_string}");
                         let _ = socket.send_to(response.as_bytes(), src);
-                        println!("Felfedező kérés a {}-ről -> IP küldve.", src.ip());
+                        println!("Discovery request from {} -> IP sent.", src.ip());
                         continue;
                     }
 
                     last_packet = Instant::now();
 
-                    // Az első datagram jelzi a "kapcsolódást"
+                    // The first datagram marks the connection
                     if !is_live {
                         is_live = true;
                         let w = app_weak.clone();
@@ -77,7 +77,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         });
                     }
 
-                    // 41 bájtos csomag: magic + controller + kvaternió + orientáció
+                    // 41-byte packet: magic + controller + quaternion + orientation
                     if size >= PACKET_LEN && buf[0] == 0x01 {
                         let steering = f32::from_le_bytes(buf[1..5].try_into().unwrap());
                         let throttle = f32::from_le_bytes(buf[5..9].try_into().unwrap());
@@ -91,7 +91,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         let yaw = f32::from_le_bytes(buf[37..41].try_into().unwrap());
 
                         println!(
-                            "Adat -> Kormany: {steering:.2} | Gaz: {throttle:.2} | Fek: {brake:.2} | Kezifek: {handbrake} | q=({qw:.3},{qx:.3},{qy:.3},{qz:.3}) | pitch={pitch:.1}° | yaw={yaw:.1}°"
+                            "Data -> Steering: {steering:.2} | Throttle: {throttle:.2} | Brake: {brake:.2} | Handbrake: {handbrake} | q=({qw:.3},{qx:.3},{qy:.3},{qz:.3}) | pitch={pitch:.1}° | yaw={yaw:.1}°"
                         );
 
                         let w = app_weak.clone();
@@ -99,10 +99,14 @@ fn main() -> Result<(), slint::PlatformError> {
                             if let Some(app) = w.upgrade() {
                                 app.set_steering_val(format!("{:.0}%", steering * 100.0).into());
                                 app.set_throttle_val(format!("{:.0}%", throttle * 100.0).into());
-                                app.set_qw_val(format!("{:.4}", qw).into());
-                                app.set_qx_val(format!("{:.4}", qx).into());
-                                app.set_qy_val(format!("{:.4}", qy).into());
-                                app.set_qz_val(format!("{:.4}", qz).into());
+                                app.set_brake_val(format!("{:.0}%", brake * 100.0).into());
+                                app.set_handbrake_active(handbrake);
+                                // Quaternion values are parsed and logged (see above) for debugging.
+                                // If the debug UI is re-enabled in app-window.slint, uncomment:
+                                // app.set_qw_val(format!("{:.4}", qw).into());
+                                // app.set_qx_val(format!("{:.4}", qx).into());
+                                // app.set_qy_val(format!("{:.4}", qy).into());
+                                // app.set_qz_val(format!("{:.4}", qz).into());
                                 app.set_pitch_val(format!("{:.1}°", pitch).into());
                                 app.set_yaw_val(format!("{:.1}°", yaw).into());
                             }
@@ -113,7 +117,7 @@ fn main() -> Result<(), slint::PlatformError> {
                     if e.kind() == std::io::ErrorKind::WouldBlock
                         || e.kind() == std::io::ErrorKind::TimedOut =>
                 {
-                    // Ha már régóta nem érkeznek adatok, offline-ra váltunk
+                    // If no data has arrived for a while, switch to offline
                     if is_live && last_packet.elapsed() > DISCONNECT_TIMEOUT {
                         is_live = false;
                         let w = app_weak.clone();
@@ -123,6 +127,8 @@ fn main() -> Result<(), slint::PlatformError> {
                                 app.set_connection_status_text("No device connected".into());
                                 app.set_steering_val("0%".into());
                                 app.set_throttle_val("0%".into());
+                                app.set_brake_val("0%".into());
+                                app.set_handbrake_active(false);
                             }
                         });
                     }
