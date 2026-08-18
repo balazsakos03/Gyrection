@@ -17,6 +17,7 @@ export component AppWindow inherits Window {
     in property <string> qx-val: "0.000";
     in property <string> qy-val: "0.000";
     in property <string> qz-val: "1.000";
+    in property <string> server-status-text: "WiFi UDP";
     // ------------------------------------------------
 
     callback connect-clicked();
@@ -313,7 +314,7 @@ export component AppWindow inherits Window {
             height: 36px;
 
             Text {
-                text: "USB connection (ADB Reverse)";
+                text: root.server-status-text;
                 color: #626872;
                 font-size: 12px;
                 vertical-alignment: center;

@@ -32,11 +32,12 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun GyrectionApp(
+    defaultIp: String,
     quaternion: Quaternion,
     orientation: Orientation,
     controllerState: ControllerState,
     isConnected: Boolean,
-    onConnectClick: () -> Unit,
+    onConnectClick: (String) -> Unit,
     onCalibrateClick: () -> Unit,
     onHandbrakeChange: (Boolean) -> Unit
 ) {
@@ -61,6 +62,7 @@ fun GyrectionApp(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     ConnectionCard(
+                        defaultIp = defaultIp,
                         isConnected = isConnected,
                         onConnectClick = onConnectClick
                     )

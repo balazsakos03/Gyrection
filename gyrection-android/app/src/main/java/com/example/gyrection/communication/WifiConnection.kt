@@ -12,7 +12,7 @@ class WifiConnection(
     private var socket: Socket? = null
     private var outputStream: OutputStream? = null
 
-    override fun connect(): Boolean = try {
+    override fun connect(host: String, port: Int): Boolean = try {
         socket = Socket(host, port)
         outputStream = socket?.getOutputStream()
         true

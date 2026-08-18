@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.example.gyrection.communication.Connection
-import com.example.gyrection.communication.WifiConnection
+import com.example.gyrection.communication.UdpConnection
 import com.example.gyrection.controller.ControllerMapper
 import com.example.gyrection.controller.ControllerState
 import com.example.gyrection.protocol.GyrectionPacket
@@ -24,6 +24,8 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
+    private val udpPort = 9999
+
     private lateinit var sensorManager: SensorManager
     private lateinit var orientationProcessor: OrientationProcessor
     private lateinit var controllerMapper: ControllerMapper
@@ -35,6 +37,9 @@ class MainActivity : ComponentActivity() {
     private var isHandbrakeActive by mutableStateOf(false)
     private var isConnected by mutableStateOf(false)
 
+    // Az utoljára megadott PC IP-cím, hogy ne kelljen újra beírni
+    private var lastIp by mutableStateOf("")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -43,7 +48,7 @@ class MainActivity : ComponentActivity() {
 
         orientationProcessor = OrientationProcessor()
         controllerMapper = ControllerMapper()
-        connection = WifiConnection() // adb forward-hoz; kesobb UsbConnection()
+        connection = UdpConnection() // Wi-Fi, UDP datagramok a PC-re
 
         sensorManager = SensorManager(this) { newQuaternion ->
             quaternion = newQuaternion
@@ -55,7 +60,10 @@ class MainActivity : ComponentActivity() {
                     steering = controllerState.steering,
                     throttle = controllerState.throttle,
                     brake = controllerState.brake,
-                    handbrake = controllerState.handbrake
+                    handbrake = controllerState.handbrake,
+                    quaternion = newQuaternion,
+                    pitch = orientation.rotY,
+                    yaw = orientation.rotZ
                 )
                 sendPacketAsync(packet)
             }
@@ -63,22 +71,27 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             GyrectionApp(
+                defaultIp = lastIp,
                 quaternion = quaternion,
                 orientation = orientation,
                 controllerState = controllerState,
                 isConnected = isConnected,
-                onConnectClick = { connectToPc() },
+                onConnectClick = { ip -> connectToPc(ip) },
                 onCalibrateClick = { orientationProcessor.calibrate(quaternion) },
                 onHandbrakeChange = { pressed -> isHandbrakeActive = pressed }
             )
         }
     }
 
-    private fun connectToPc() {
+    private fun connectToPc(ip: String) {
+        if (ip.isBlank() || isConnected) return
+        lastIp = ip.trim()
         lifecycleScope.launch(Dispatchers.IO) {
-            val success = connection.connect()
+            val success = connection.connect(ip.trim(), udpPort)
             withContext(Dispatchers.Main) {
-                isConnected = success
+                if (success) {
+                    isConnected = true
+                }
             }
         }
     }
