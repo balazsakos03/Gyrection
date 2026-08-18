@@ -24,6 +24,8 @@ export component AppWindow inherits Window {
     // in property <string> qy-val: "0.000";
     // in property <string> qz-val: "1.000";
     in property <string> server-status-text: "WiFi UDP";
+    // True when the Xbox 360 virtual controller is live on the ViGEmBus
+    in property <bool> virtual-controller-active: false;
     // ------------------------------------------------
 
     callback connect-clicked();
@@ -128,14 +130,16 @@ export component AppWindow inherits Window {
                     }
 
                     Text {
-                        text: root.is-connected ? "Active" : "Inactive";
-                        color: root.is-connected ? #4CAF50 : #f1f3f5;
+                        text: root.virtual-controller-active ? "Emulated" : "Not emulated";
+                        color: root.virtual-controller-active ? #4CAF50 : #f1f3f5;
                         font-size: 18px;
                         font-weight: 600;
                     }
 
                     Text {
-                        text: root.is-connected ? "Mapping motion to virtual gamepad." : "A virtual gamepad will appear here.";
+                        text: root.virtual-controller-active
+                            ? "Xbox 360 controller active via ViGEmBus."
+                            : "Install the ViGEmBus driver, then restart.";
                         color: #858b94;
                         font-size: 13px;
                     }

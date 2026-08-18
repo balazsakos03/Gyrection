@@ -49,6 +49,33 @@ fn main() -> Result<(), slint::PlatformError> {
         let mut last_packet = Instant::now();
         let mut is_live = false;
 
+        // --- Xbox 360 virtual controller via ViGEmBus ---
+        let mut xbox_target: Option<vigem_client::Xbox360Wired<vigem_client::Client>> = None;
+        match vigem_client::Client::connect() {
+            Ok(client) => {
+                let mut t = vigem_client::Xbox360Wired::new(client, vigem_client::TargetId::XBOX360_WIRED);
+                match t.plugin() {
+                    Ok(_) => {
+                        let _ = t.wait_ready();
+                        println!("Xbox 360 virtual controller emulated (ViGEmBus).");
+                        xbox_target = Some(t);
+                        let w = app_weak.clone();
+                        let _ = slint::invoke_from_event_loop(move || {
+                            if let Some(app) = w.upgrade() {
+                                app.set_virtual_controller_active(true);
+                            }
+                        });
+                    }
+                    Err(e) => println!(
+                        "Xbox 360 plugin failed: {e}. Install the ViGEmBus driver, then restart."
+                    ),
+                }
+            }
+            Err(e) => println!(
+                "ViGEm client connect failed: {e}. Install the ViGEmBus driver, then restart."
+            ),
+        }
+
         let mut buf = [0u8; 64];
         loop {
             match socket.recv_from(&mut buf) {
@@ -111,6 +138,25 @@ fn main() -> Result<(), slint::PlatformError> {
                                 app.set_yaw_val(format!("{:.1}°", yaw).into());
                             }
                         });
+
+                        // Forward the received data to the virtual Xbox 360 controller
+                        if let Some(t) = xbox_target.as_mut() {
+                            let buttons = if handbrake {
+                                vigem_client::XButtons!(A)
+                            } else {
+                                vigem_client::XButtons(0)
+                            };
+                            let gamepad = vigem_client::XGamepad {
+                                buttons,
+                                left_trigger: (brake.clamp(0.0, 1.0) * 255.0) as u8,
+                                right_trigger: (throttle.clamp(0.0, 1.0) * 255.0) as u8,
+                                thumb_lx: (steering.clamp(-1.0, 1.0) * 32767.0) as i16,
+                                thumb_ly: 0,
+                                thumb_rx: 0,
+                                thumb_ry: 0,
+                            };
+                            let _ = t.update(&gamepad);
+                        }
                     }
                 }
                 Err(e)
