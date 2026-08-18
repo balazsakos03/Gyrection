@@ -6,6 +6,19 @@ export component AppWindow inherits Window {
     height: 650px;
     background: #111315;
 
+    // --- ÚJ PROPERTIEK (Ezeket állítja a Rust kód) ---
+    in property <bool> is-connected: false;
+    in property <string> connection-status-text: "No device connected";
+    in property <string> steering-val: "0%";
+    in property <string> throttle-val: "0%";
+    in property <string> pitch-val: "0.00°";
+    in property <string> yaw-val: "0.00°";
+    in property <string> qw-val: "0.000";
+    in property <string> qx-val: "0.000";
+    in property <string> qy-val: "0.000";
+    in property <string> qz-val: "1.000";
+    // ------------------------------------------------
+
     callback connect-clicked();
 
     VerticalBox {
@@ -34,8 +47,9 @@ export component AppWindow inherits Window {
             }
 
             Text {
-                text: "●  DISCONNECTED";
-                color: #858b94;
+                // Dinamikus státusz a jobb felső sarokban
+                text: root.is-connected ? "●  CONNECTED" : "●  DISCONNECTED";
+                color: root.is-connected ? #4CAF50 : #858b94;
                 font-size: 13px;
                 vertical-alignment: center;
                 horizontal-alignment: right;
@@ -66,14 +80,14 @@ export component AppWindow inherits Window {
                     }
 
                     Text {
-                        text: "No device connected";
+                        text: root.connection-status-text;
                         color: #f1f3f5;
                         font-size: 21px;
                         font-weight: 600;
                     }
 
                     Text {
-                        text: "Connect your Android phone via USB.";
+                        text: root.is-connected ? "Receiving sensor data..." : "Connect your Android phone via USB.";
                         color: #858b94;
                         font-size: 14px;
                     }
@@ -84,8 +98,9 @@ export component AppWindow inherits Window {
                     }
 
                     Button {
-                        text: "Connect device";
+                        text: root.is-connected ? "Connected" : "Connect device";
                         primary: true;
+                        enabled: !root.is-connected;
 
                         clicked => {
                             connect-clicked();
@@ -113,14 +128,14 @@ export component AppWindow inherits Window {
                     }
 
                     Text {
-                        text: "Inactive";
-                        color: #f1f3f5;
+                        text: root.is-connected ? "Active" : "Inactive";
+                        color: root.is-connected ? #4CAF50 : #f1f3f5;
                         font-size: 21px;
                         font-weight: 600;
                     }
 
                     Text {
-                        text: "A virtual gamepad will appear here.";
+                        text: root.is-connected ? "Mapping motion to virtual gamepad." : "A virtual gamepad will appear here.";
                         color: #858b94;
                         font-size: 14px;
                     }
@@ -131,7 +146,7 @@ export component AppWindow inherits Window {
                     }
 
                     Text {
-                        text: "Waiting for phone connection...";
+                        text: root.is-connected ? "Controller running smoothly." : "Waiting for phone connection...";
                         color: #626872;
                         font-size: 13px;
                     }
@@ -177,25 +192,25 @@ export component AppWindow inherits Window {
                             }
 
                             Text {
-                                text: "W     0.000";
+                                text: "W     " + root.qw-val;
                                 color: #e8eaed;
                                 font-size: 14px;
                             }
 
                             Text {
-                                text: "X     0.000";
+                                text: "X     " + root.qx-val;
                                 color: #e8eaed;
                                 font-size: 14px;
                             }
 
                             Text {
-                                text: "Y     0.000";
+                                text: "Y     " + root.qy-val;
                                 color: #e8eaed;
                                 font-size: 14px;
                             }
 
                             Text {
-                                text: "Z     1.000";
+                                text: "Z     " + root.qz-val;
                                 color: #e8eaed;
                                 font-size: 14px;
                             }
@@ -225,7 +240,7 @@ export component AppWindow inherits Window {
                             }
 
                             Text {
-                                text: "0.00°";
+                                text: root.pitch-val;
                                 color: #e8eaed;
                                 font-size: 20px;
                                 font-weight: 600;
@@ -238,7 +253,7 @@ export component AppWindow inherits Window {
                             }
 
                             Text {
-                                text: "0.00°";
+                                text: root.yaw-val;
                                 color: #e8eaed;
                                 font-size: 20px;
                                 font-weight: 600;
@@ -269,7 +284,7 @@ export component AppWindow inherits Window {
                             }
 
                             Text {
-                                text: "0%";
+                                text: root.steering-val;
                                 color: #e8eaed;
                                 font-size: 20px;
                                 font-weight: 600;
@@ -282,7 +297,7 @@ export component AppWindow inherits Window {
                             }
 
                             Text {
-                                text: "0%";
+                                text: root.throttle-val;
                                 color: #e8eaed;
                                 font-size: 20px;
                                 font-weight: 600;
@@ -298,7 +313,7 @@ export component AppWindow inherits Window {
             height: 36px;
 
             Text {
-                text: "USB connection";
+                text: "USB connection (ADB Reverse)";
                 color: #626872;
                 font-size: 12px;
                 vertical-alignment: center;
