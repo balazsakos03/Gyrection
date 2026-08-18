@@ -37,8 +37,8 @@ class MainActivity : ComponentActivity() {
     private var isHandbrakeActive by mutableStateOf(false)
     private var isConnected by mutableStateOf(false)
 
-    // Az utoljára megadott PC IP-cím, hogy ne kelljen újra beírni
-    private var lastIp by mutableStateOf("")
+    // Folyamatban van-e már a PC felfedezése (elkerüljük az átfedő kéréseket)
+    private var discoverInProgress = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,24 +71,31 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             GyrectionApp(
-                defaultIp = lastIp,
                 quaternion = quaternion,
                 orientation = orientation,
                 controllerState = controllerState,
                 isConnected = isConnected,
-                onConnectClick = { ip -> connectToPc(ip) },
+                onConnectClick = { autoConnect() },
                 onCalibrateClick = { orientationProcessor.calibrate(quaternion) },
                 onHandbrakeChange = { pressed -> isHandbrakeActive = pressed }
             )
         }
     }
 
-    private fun connectToPc(ip: String) {
-        if (ip.isBlank() || isConnected) return
-        lastIp = ip.trim()
+    /**
+     * Automatikus csatlakozás: broadcast-kal megkeresi a PC-t a hálózaton
+     * (a felhasználónak nem kell IP-címet beírnia), majd csatlakozik hozzá.
+     */
+    private fun autoConnect() {
+        if (isConnected || discoverInProgress) return
+        discoverInProgress = true
         lifecycleScope.launch(Dispatchers.IO) {
-            val success = connection.connect(ip.trim(), udpPort)
+            val udp = connection as? UdpConnection
+            val ip = udp?.discover(udpPort, timeoutMs = 2000)
+            val success = if (ip != null) connection.connect(ip, udpPort) else false
+
             withContext(Dispatchers.Main) {
+                discoverInProgress = false
                 if (success) {
                     isConnected = true
                 }
@@ -105,6 +112,8 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         sensorManager.start()
+        // Háttérben automatikusan megkeresi a PC-t a hálózaton
+        autoConnect()
     }
 
     override fun onPause() {

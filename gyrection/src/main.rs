@@ -8,6 +8,11 @@ const UDP_PORT: u16 = 9999;
 const PACKET_LEN: usize = 41;
 const DISCONNECT_TIMEOUT: Duration = Duration::from_millis(1500);
 
+/// A telefon által küldött felfedező üzenet (broadcast). Ha ezt látjuk,
+/// tudja a telefon, hogy itt a PC szerver, és visszaküldjük az IP-címünket.
+const DISCOVERY_MSG: &[u8] = b"GYRECTION_DISCOVERY";
+const DISCOVERY_RESPONSE_PREFIX: &str = "GYRECTION_IP ";
+
 /// Megkeresi a gép helyi (LAN) IP-címét egy küldés nélküli UDP "probe"-bal,
 /// hogy a felület alján megmutathassuk, hova kell a telefonban küldeni.
 fn local_ipv4() -> IpAddr {
@@ -27,6 +32,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     // A PC helyi címe, amelyet a telefonban meg kell adni
     let ip = local_ipv4();
+    let ip_string = ip.to_string();
     let server_info = format!("WiFi UDP | telefon erre küldjön: {ip}:{UDP_PORT}");
     app.set_server_status_text(server_info.clone().into());
     println!("{server_info}");
@@ -47,6 +53,14 @@ fn main() -> Result<(), slint::PlatformError> {
         loop {
             match socket.recv_from(&mut buf) {
                 Ok((size, src)) => {
+                    // Broadcast-felfedezés: a telefon keresi a PC-t → küldjük az IP-címünket
+                    if size >= DISCOVERY_MSG.len() && &buf[..DISCOVERY_MSG.len()] == DISCOVERY_MSG {
+                        let response = format!("{DISCOVERY_RESPONSE_PREFIX}{ip_string}");
+                        let _ = socket.send_to(response.as_bytes(), src);
+                        println!("Felfedező kérés a {}-ről -> IP küldve.", src.ip());
+                        continue;
+                    }
+
                     last_packet = Instant::now();
 
                     // Az első datagram jelzi a "kapcsolódást"

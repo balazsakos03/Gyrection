@@ -2,25 +2,20 @@ package com.example.gyrection.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun ConnectionCard(
-    defaultIp: String,
     isConnected: Boolean,
-    onConnectClick: (String) -> Unit,
+    onConnectClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var ip by remember { mutableStateOf(defaultIp) }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -50,29 +45,27 @@ fun ConnectionCard(
                         color = if (isConnected) Color(0xFF4CAF50) else Color(0xFFF44336)
                     )
                 }
+
+                Button(
+                    onClick = {
+                        android.util.Log.d("GyrectionDebug", "Csatlakozás kattintva")
+                        onConnectClick()
+                    },
+                    enabled = !isConnected,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(if (isConnected) "Aktív" else "Csatlakozás")
+                }
             }
 
-            OutlinedTextField(
-                value = ip,
-                onValueChange = { ip = it },
-                enabled = !isConnected,
-                singleLine = true,
-                label = { Text("PC IP címe (Wi-Fi)") },
-                placeholder = { Text("pl. 192.168.1.7") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                modifier = Modifier.fillMaxWidth()
+            Text(
+                text = if (isConnected)
+                    "Szenzor adatok küldése a PC-re..."
+                else
+                    "A gomb automatikusan megkeresi a PC-t a hálózaton.",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodySmall
             )
-
-            Button(
-                onClick = {
-                    android.util.Log.d("GyrectionDebug", "Csatlakozás kattintva -> $ip")
-                    onConnectClick(ip)
-                },
-                enabled = !isConnected && ip.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text(if (isConnected) "Aktív" else "Csatlakozás")
-            }
         }
     }
 }
