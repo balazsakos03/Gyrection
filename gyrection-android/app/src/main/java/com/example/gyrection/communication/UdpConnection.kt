@@ -4,6 +4,8 @@ import com.example.gyrection.protocol.GyrectionPacket
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.net.NetworkInterface
+import java.util.Collections
 
 /**
  * UDP-based connection (Wi-Fi, low-latency sensor streaming).
@@ -32,8 +34,29 @@ class UdpConnection : Connection {
             s.soTimeout = timeoutMs
 
             val payload = "GYRECTION_DISCOVERY".toByteArray(Charsets.UTF_8)
+
+            // 1) Limited broadcast – a legtöbb esetben ez elég
             val broadcast = InetAddress.getByName("255.255.255.255")
             s.send(DatagramPacket(payload, payload.size, broadcast, port))
+
+            // 2) Minden aktív interfész subnet-broadcast címére is (ír a USB-tethering,
+            //    VPN, illetve több hálózati interfész esetén a limited broadcast
+            //    csak az alapértelmezett útvonalra megy ki, így az nem mindig célba ér)
+            try {
+                NetworkInterface.getNetworkInterfaces()?.let { enums ->
+                    Collections.list(enums).forEach { nif ->
+                        if (nif.isUp && !nif.isLoopback) {
+                            nif.interfaceAddresses?.firstOrNull { it.broadcast != null }?.let { ia ->
+                                ia.broadcast?.let { bc ->
+                                    s.send(DatagramPacket(payload, payload.size, bc, port))
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (ignore: Exception) {
+                // An interface-listing failure should not abort the discovery
+            }
 
             val buf = ByteArray(256)
             val deadline = System.currentTimeMillis() + timeoutMs
