@@ -21,6 +21,7 @@ import com.example.gyrection.sensor.Quaternion
 import com.example.gyrection.ui.components.ConnectionCard
 import com.example.gyrection.ui.components.HandbrakeButton
 import com.example.gyrection.ui.components.OrientationCard
+import com.example.gyrection.ui.components.SensitivityPreset
 
 private val DarkColors = darkColorScheme(
     background = Color(0xFF111315),
@@ -36,8 +37,12 @@ fun GyrectionApp(
     orientation: Orientation,
     controllerState: ControllerState,
     isConnected: Boolean,
+    steeringPreset: SensitivityPreset,
+    tiltPreset: SensitivityPreset,
     onConnectClick: () -> Unit,
     onCalibrateClick: () -> Unit,
+    onSteeringPresetChange: (SensitivityPreset) -> Unit,
+    onTiltPresetChange: (SensitivityPreset) -> Unit,
     onHandbrakeChange: (Boolean) -> Unit
 ) {
     MaterialTheme(colorScheme = DarkColors) {
@@ -68,6 +73,10 @@ fun GyrectionApp(
                     OrientationCard(
                         orientation = orientation,
                         controllerState = controllerState,
+                        steeringPreset = steeringPreset,
+                        tiltPreset = tiltPreset,
+                        onSteeringPresetChange = onSteeringPresetChange,
+                        onTiltPresetChange = onTiltPresetChange,
                         onCalibrateClick = onCalibrateClick,
                         modifier = Modifier.weight(1f).padding(top = 12.dp)
                     )

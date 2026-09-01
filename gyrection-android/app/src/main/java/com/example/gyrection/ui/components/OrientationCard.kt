@@ -13,11 +13,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.gyrection.controller.ControllerState
 import com.example.gyrection.sensor.Orientation
+import com.example.gyrection.ui.components.SensitivityPreset
+import com.example.gyrection.ui.components.SensitivitySelector
 
 @Composable
 fun OrientationCard(
     orientation: Orientation,
     controllerState: ControllerState,
+    steeringPreset: SensitivityPreset,
+    tiltPreset: SensitivityPreset,
+    onSteeringPresetChange: (SensitivityPreset) -> Unit,
+    onTiltPresetChange: (SensitivityPreset) -> Unit,
     onCalibrateClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -65,6 +71,19 @@ fun OrientationCard(
             ) {
                 Text("Calibrate Center", fontWeight = FontWeight.Bold)
             }
+
+            // Sensitivity selectors
+            SensitivitySelector(
+                label = "Steering sensitivity (Z rotation)",
+                currentPreset = steeringPreset,
+                onPresetChange = onSteeringPresetChange
+            )
+
+            SensitivitySelector(
+                label = "Throttle/Brake sensitivity (Y tilt)",
+                currentPreset = tiltPreset,
+                onPresetChange = onTiltPresetChange
+            )
         }
     }
 }

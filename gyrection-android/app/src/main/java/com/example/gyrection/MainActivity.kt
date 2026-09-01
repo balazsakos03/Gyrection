@@ -18,6 +18,7 @@ import com.example.gyrection.sensor.OrientationProcessor
 import com.example.gyrection.sensor.Quaternion
 import com.example.gyrection.sensor.SensorManager
 import com.example.gyrection.ui.GyrectionApp
+import com.example.gyrection.ui.components.SensitivityPreset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,7 +29,6 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var sensorManager: SensorManager
     private lateinit var orientationProcessor: OrientationProcessor
-    private lateinit var controllerMapper: ControllerMapper
     private lateinit var connection: Connection
 
     private var quaternion by mutableStateOf(Quaternion())
@@ -36,6 +36,18 @@ class MainActivity : ComponentActivity() {
     private var controllerState by mutableStateOf(ControllerState())
     private var isHandbrakeActive by mutableStateOf(false)
     private var isConnected by mutableStateOf(false)
+
+    // Sensitivity presets
+    private var steeringPreset by mutableStateOf(SensitivityPreset.MEDIUM)
+    private var tiltPreset by mutableStateOf(SensitivityPreset.MEDIUM)
+
+    // The controller mapper must be recreated when presets change
+    private var controllerMapper by mutableStateOf(
+        ControllerMapper(
+            steeringMaxTilt = SensitivityPreset.MEDIUM.maxDegrees,
+            tiltMaxTilt = SensitivityPreset.MEDIUM.maxDegrees
+        )
+    )
 
     // A discovery request is already in progress; avoid overlapping calls
     private var discoverInProgress = false
@@ -47,7 +59,6 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
 
         orientationProcessor = OrientationProcessor()
-        controllerMapper = ControllerMapper()
         connection = UdpConnection() // Wi-Fi, sends UDP datagrams to the PC
 
         sensorManager = SensorManager(this) { newQuaternion ->
@@ -75,8 +86,24 @@ class MainActivity : ComponentActivity() {
                 orientation = orientation,
                 controllerState = controllerState,
                 isConnected = isConnected,
+                steeringPreset = steeringPreset,
+                tiltPreset = tiltPreset,
                 onConnectClick = { autoConnect() },
                 onCalibrateClick = { orientationProcessor.calibrate(quaternion) },
+                onSteeringPresetChange = { preset ->
+                    steeringPreset = preset
+                    controllerMapper = ControllerMapper(
+                        steeringMaxTilt = preset.maxDegrees,
+                        tiltMaxTilt = tiltPreset.maxDegrees
+                    )
+                },
+                onTiltPresetChange = { preset ->
+                    tiltPreset = preset
+                    controllerMapper = ControllerMapper(
+                        steeringMaxTilt = steeringPreset.maxDegrees,
+                        tiltMaxTilt = preset.maxDegrees
+                    )
+                },
                 onHandbrakeChange = { pressed -> isHandbrakeActive = pressed }
             )
         }
